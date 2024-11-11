@@ -1,0 +1,40 @@
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import pickle
+import pandas as pd
+
+# Инициализация приложения FastAPI
+app = FastAPI()
+
+# Загрузка обученной модели
+with open('realty_price_model.pkl', 'rb') as f:
+    model = pickle.load(f)
+
+# Модель данных для входных параметров предсказания
+class PredictionRequest(BaseModel):
+    total_square: float
+    rooms: int
+    floor: int
+    lat: float
+    lon: float
+
+# Liveness-проба (health-check)
+@app.get("/health")
+def health_check():
+    return {"status": "API is healthy"}
+
+# POST-запрос для предсказания стоимости недвижимости
+@app.post("/predict_post")
+def predict(request: PredictionRequest):
+    # Подготовка данных для модели
+    data = pd.DataFrame([{
+        "total_square": request.total_square,
+        "rooms": request.rooms,
+        "floor": request.floor,
+        "lat": request.lat,
+        "lon": request.lon
+    }])
+    
+    # Выполнение предсказания
+    try:
+        prediction =
